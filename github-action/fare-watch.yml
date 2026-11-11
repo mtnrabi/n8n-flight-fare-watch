@@ -1,0 +1,32 @@
+# Daily fare watch on GitHub's free scheduler. Opens an issue (GitHub emails you) when the fare is a deal.
+# 1. Copy github-action/ into your own repo and this file to .github/workflows/fare-watch.yml
+# 2. Settings > Secrets and variables > Actions > New repository secret: RAPIDAPI_KEY
+# 3. Edit FROM / TO / dates / TARGET_PRICE below.
+name: fare-watch
+on:
+  schedule:
+    - cron: "23 7 * * *"   # once a day = one request a day (about 30 a month)
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: check the fare
+        env:
+          FROM: JFK
+          TO: LIS
+          DEPART: ""          # YYYY-MM-DD, or empty for DAYS_AHEAD days from today
+          DAYS_AHEAD: "45"
+          NIGHTS: "7"
+          TARGET_PRICE: "600"
+          CURRENCY: usd
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python github-action/fare_watch.py

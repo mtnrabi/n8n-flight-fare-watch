@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="230" viewBox="0 0 1000 230">
+<rect width="1000" height="230" rx="12" fill="#f6f6f9"/>
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8a8a99"/></marker></defs>
+<rect x="20" y="80" width="170" height="64" rx="10" fill="#fff" stroke="#7a5af8" stroke-width="2"/>
+<text x="105" y="108" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#2b2b38" text-anchor="middle">Every morning</text>
+<text x="105" y="128" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#6b6b80" text-anchor="middle">Schedule, 08:00</text>
+<line x1="190" y1="112" x2="223" y2="112" stroke="#8a8a99" stroke-width="2" marker-end="url(#a)"/>
+<rect x="225" y="80" width="170" height="64" rx="10" fill="#fff" stroke="#9aa0a6" stroke-width="2"/>
+<text x="310" y="108" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#2b2b38" text-anchor="middle">Watch settings</text>
+<text x="310" y="128" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#6b6b80" text-anchor="middle">route, dates, target</text>
+<line x1="395" y1="112" x2="428" y2="112" stroke="#8a8a99" stroke-width="2" marker-end="url(#a)"/>
+<rect x="430" y="80" width="170" height="64" rx="10" fill="#fff" stroke="#ff6d5a" stroke-width="2"/>
+<text x="515" y="108" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#2b2b38" text-anchor="middle">Search round trip</text>
+<text x="515" y="128" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#6b6b80" text-anchor="middle">FlightPowers node</text>
+<line x1="600" y1="112" x2="633" y2="112" stroke="#8a8a99" stroke-width="2" marker-end="url(#a)"/>
+<rect x="635" y="80" width="170" height="64" rx="10" fill="#fff" stroke="#f5a623" stroke-width="2"/>
+<text x="720" y="108" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#2b2b38" text-anchor="middle">Cheapest fare, alert?</text>
+<text x="720" y="128" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#6b6b80" text-anchor="middle">Code: Google range + target</text>
+<rect x="810" y="30" width="170" height="64" rx="10" fill="#fff" stroke="#3cb371" stroke-width="2"/>
+<text x="895" y="58" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#2b2b38" text-anchor="middle">Email me</text>
+<text x="895" y="78" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#6b6b80" text-anchor="middle">SMTP</text>
+<rect x="810" y="140" width="170" height="64" rx="10" fill="#fff" stroke="#3cb371" stroke-width="2"/>
+<text x="895" y="168" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#2b2b38" text-anchor="middle">Slack</text>
+<text x="895" y="188" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#6b6b80" text-anchor="middle">incoming webhook (off)</text>
+<path d="M785,112 C798,112 798,62 808,62" fill="none" stroke="#8a8a99" stroke-width="2" marker-end="url(#a)"/>
+<path d="M785,112 C798,112 798,172 808,172" fill="none" stroke="#8a8a99" stroke-width="2" marker-end="url(#a)"/>
+<text x="20" y="216" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#6b6b80">n8n-flight-fare-watch: workflows/fare-watch-flightpowers-node.json (the HTTP Request version swaps the third node)</text>
+</svg>

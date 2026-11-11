@@ -1,0 +1,234 @@
+{
+  "name": "Daily fare watch (FlightPowers node)",
+  "nodes": [
+    {
+      "id": "b1a7c0de-0000-4000-8000-000000000001",
+      "name": "Every morning",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "b1a7c0de-0000-4000-8000-000000000002",
+      "name": "Watch settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "from",
+              "value": "JFK",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "to",
+              "value": "LIS",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "departure_date",
+              "value": "={{ $now.plus({ days: 45 }).toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "return_date",
+              "value": "={{ $now.plus({ days: 52 }).toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "target_price",
+              "value": 600,
+              "type": "number"
+            },
+            {
+              "id": "a6",
+              "name": "currency",
+              "value": "usd",
+              "type": "string"
+            },
+            {
+              "id": "a7",
+              "name": "always_send",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "a8",
+              "name": "email_to",
+              "value": "you@example.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b1a7c0de-0000-4000-8000-000000000003",
+      "name": "Search round trip",
+      "type": "n8n-nodes-flightpowers.flightPowers",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "resource": "flight",
+        "operation": "searchRoundTrip",
+        "from_airport": "={{ $json.from }}",
+        "to_airport": "={{ $json.to }}",
+        "departure_date": "={{ $json.departure_date }}",
+        "return_date": "={{ $json.return_date }}",
+        "options": {
+          "currency": "={{ $json.currency }}",
+          "limit": 10,
+          "sort_type": "Price"
+        }
+      },
+      "credentials": {
+        "flightPowersApi": {
+          "id": "",
+          "name": "FlightPowers account"
+        }
+      }
+    },
+    {
+      "id": "b1a7c0de-0000-4000-8000-000000000004",
+      "name": "Cheapest fare, alert?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Code node body (\"Run Once for All Items\") shared by both workflows.\n// Input: one item per itinerary from the flight search. Output: ONE item with the alert, or none.\n// Edit the rules here, then run `node scripts/build.mjs` to copy this code into the workflow files.\nconst s = $('Watch settings').first().json;\nconst rows = $input.all()\n  .flatMap((i) => (Array.isArray(i.json) ? i.json : Array.isArray(i.json.data) ? i.json.data : [i.json]))\n  .filter((r) => typeof (r.total_price_as_number ?? r.price_as_number) === 'number');\nif (rows.length === 0) return [];\n\nconst price = (r) => r.total_price_as_number ?? r.price_as_number;\nconst best = rows.reduce((a, b) => (price(b) < price(a) ? b : a));\nconst p = price(best);\nconst cur = String(s.currency || 'usd').toUpperCase();\n\nconst why = [];\nif (s.target_price != null && s.target_price !== '' && p <= Number(s.target_price)) why.push(`at or under your target of ${s.target_price}`);\nif (typeof best.price_insights_low === 'number' && p < best.price_insights_low) why.push(`under Google's usual range (${best.price_insights_low}-${best.price_insights_high})`);\nif (best.price_range_in_relation_to_other_periods === 'low') why.push('Google rates it LOW for these dates');\nif (why.length === 0 && !s.always_send) return [];\n\nconst fetchedAt = new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';\nconst text = [\n  `${s.from} -> ${s.to}, ${best.departure_date} to ${best.return_date}: ${p} ${cur} round trip`,\n  `Outbound: ${best.departure_flight_airline}, ${best.departure_flight_stops} stop(s), ${best.departure_flight_departure_description}`,\n  `Return: ${best.return_flight_airline}, ${best.return_flight_stops} stop(s), ${best.return_flight_departure_description}`,\n  `Google: ${best.price_range_in_relation_to_other_periods} (usual ${best.price_insights_low}-${best.price_insights_high} ${cur})`,\n  why.length ? `Why: ${why.join('; ')}` : 'Daily summary (always_send is on)',\n  `Book: ${best.buy_link}`,\n  `Fetched ${fetchedAt}. Fares change within minutes.`,\n].join('\\n');\n\nreturn [{ json: {\n  subject: `Fare watch: ${s.from}-${s.to} ${p} ${cur} (${best.price_range_in_relation_to_other_periods})`,\n  text, price: p, currency: cur, reasons: why, buy_link: best.buy_link, fetched_at: fetchedAt,\n  departure_date: best.departure_date, return_date: best.return_date,\n} }];\n"
+      }
+    },
+    {
+      "id": "b1a7c0de-0000-4000-8000-000000000005",
+      "name": "Email me",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        880,
+        220
+      ],
+      "parameters": {
+        "fromEmail": "fare-watch@example.com",
+        "toEmail": "={{ $('Watch settings').first().json.email_to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "credentials": {
+        "smtp": {
+          "id": "",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "id": "b1a7c0de-0000-4000-8000-000000000006",
+      "name": "Slack (incoming webhook)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        400
+      ],
+      "disabled": true,
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/REPLACE/WITH/YOURS",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.text }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Every morning": {
+      "main": [
+        [
+          {
+            "node": "Watch settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Watch settings": {
+      "main": [
+        [
+          {
+            "node": "Search round trip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search round trip": {
+      "main": [
+        [
+          {
+            "node": "Cheapest fare, alert?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cheapest fare, alert?": {
+      "main": [
+        [
+          {
+            "node": "Email me",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack (incoming webhook)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
