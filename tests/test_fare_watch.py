@@ -16,6 +16,26 @@ def test_settings_and_body():
     b = fw.body_for(s)
     assert b["from_airport"] == "JFK" and b["return_date"] == "2027-02-08"
     assert all(k == k.lower() for k in b)
+    # either one drops Google's range and verdict from the answer
+    assert "sort_type" not in b and "max_price" not in b
+
+
+BAND = {"price_insights_low": 100, "price_insights_high": 200, "price_range_in_relation_to_other_periods": "low",
+        "departure_date": "2027-02-01", "return_date": "2027-02-08"}
+
+
+def test_range_and_verdict_alert_on_the_cheapest_row_even_when_it_is_not_first():
+    rows = [dict(BAND, total_price_as_number=140), dict(BAND, total_price_as_number=90)]
+    best, why = fw.decide(rows, dict(fw.settings(ENV), target=None))
+    assert best["total_price_as_number"] == 90
+    assert why == ["under Google's usual range (100-200)", "Google rates it LOW for these dates"]
+
+
+def test_report_without_a_range_does_not_print_none():
+    row = {"total_price_as_number": 90, "departure_date": "2027-02-01", "return_date": "2027-02-08",
+           "price_insights_low": None, "price_insights_high": None, "price_range_in_relation_to_other_periods": ""}
+    _, body = fw.report(row, ["test"], fw.settings(ENV), "T")
+    assert "no usual range" in body and "usual None" not in body
 
 
 def test_alert_on_real_response(tmp_path, monkeypatch):

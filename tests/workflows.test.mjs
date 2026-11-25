@@ -57,6 +57,30 @@ test('Code node also accepts the whole array in one item (HTTP Request without s
   assert.equal(out[0].json.price, 628);
 });
 
+for (const file of WORKFLOWS) {
+  test(`${file}: the search is not price-sorted, so Google sends its range and verdict`, () => {
+    const search = read(file).nodes.find((n) => n.name === 'Search round trip');
+    assert.doesNotMatch(JSON.stringify(search), /sort_type|max_price/);
+  });
+
+  test(`${file}: range and verdict alert on the cheapest row even when it is not first`, async () => {
+    const code = read(file).nodes.find((n) => n.type === 'n8n-nodes-base.code').parameters.jsCode;
+    const band = { price_insights_low: 100, price_insights_high: 200, price_range_in_relation_to_other_periods: 'low' };
+    const items = [140, 90].map((total_price_as_number) => ({ json: { ...band, total_price_as_number } }));
+    const out = await runCode(code, items, base);
+    assert.equal(out[0].json.price, 90);
+    assert.deepEqual(out[0].json.reasons, ["under Google's usual range (100-200)", 'Google rates it LOW for these dates']);
+  });
+
+  test(`${file}: a fare without a range prints no "null"`, async () => {
+    const code = read(file).nodes.find((n) => n.type === 'n8n-nodes-base.code').parameters.jsCode;
+    const row = { total_price_as_number: 90, price_insights_low: null, price_insights_high: null, price_range_in_relation_to_other_periods: '' };
+    const out = await runCode(code, [{ json: row }], { ...base, target_price: 100 });
+    assert.match(out[0].json.text, /no usual range for these dates/);
+    assert.equal(out[0].json.subject, 'Fare watch: JFK-LIS 90 USD');
+  });
+}
+
 test('always_send sends a daily summary even without a deal', async () => {
   const code = read(WORKFLOWS[0]).nodes.find((n) => n.type === 'n8n-nodes-base.code').parameters.jsCode;
   const out = await runCode(code, rows.map((r) => ({ json: r })), { ...base, target_price: 100, always_send: true });
