@@ -38,7 +38,8 @@ const flightPowersNode = {
     resource: 'flight', operation: 'searchRoundTrip',
     from_airport: '={{ $json.from }}', to_airport: '={{ $json.to }}',
     departure_date: '={{ $json.departure_date }}', return_date: '={{ $json.return_date }}',
-    options: { currency: '={{ $json.currency }}', limit: 10, sort_type: 'Price' },
+    // no sort_type: Google gives no usual range and no verdict on a price-sorted page; the Code node picks the cheapest
+    options: { currency: '={{ $json.currency }}', limit: 10 },
   },
   credentials: { flightPowersApi: { id: '', name: 'FlightPowers account' } },
 };
@@ -53,7 +54,7 @@ const httpNode = {
     sendHeaders: true,
     headerParameters: { parameters: [{ name: 'x-rapidapi-host', value: 'google-flights-live-api.p.rapidapi.com' }] },
     sendBody: true, specifyBody: 'json',
-    jsonBody: "={{ JSON.stringify({ from_airport: $json.from, to_airport: $json.to, departure_date: $json.departure_date, return_date: $json.return_date, currency: $json.currency, limit: 10, sort_type: 'Price', _fp_source: 'gh-example', _fp_tool: 'n8n-flight-fare-watch' }) }}",
+    jsonBody: "={{ JSON.stringify({ from_airport: $json.from, to_airport: $json.to, departure_date: $json.departure_date, return_date: $json.return_date, currency: $json.currency, limit: 10, _fp_source: 'gh-example', _fp_tool: 'n8n-flight-fare-watch' }) }}",
     options: { timeout: 90000 },
   },
   credentials: { httpHeaderAuth: { id: '', name: 'RapidAPI key (x-rapidapi-key)' } },

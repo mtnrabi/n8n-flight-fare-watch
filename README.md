@@ -78,8 +78,16 @@ curl -X POST https://google-flights-live-api.p.rapidapi.com/api/google_flights/r
   -H "Content-Type: application/json" \
   -H "x-rapidapi-host: google-flights-live-api.p.rapidapi.com" \
   -H "x-rapidapi-key: $RAPIDAPI_KEY" \
-  -d '{"from_airport":"JFK","to_airport":"LIS","departure_date":"2027-02-01","return_date":"2027-02-08","currency":"usd","limit":10,"sort_type":"Price"}'
+  -d '{"from_airport":"JFK","to_airport":"LIS","departure_date":"2027-02-01","return_date":"2027-02-08","currency":"usd","limit":10}'
 ```
+
+There is no `sort_type` on purpose. Google gives no usual range and no `low` / `typical` / `high` verdict on a
+price-sorted page, so with `"sort_type":"Price"` (or `max_price`) those fields come back empty and only your
+target price could ever alert. The Code node and the Action take the cheapest row themselves. Rows come back with
+the fewest stops first and are cut at `limit`, so a trip with many stops can be cheaper than the one reported.
+
+**Imported this before 2026-11-25?** Open **Search round trip** and remove `sort_type` (in the FlightPowers node it is
+under Options; in the HTTP node it is in the JSON body), or import the file again.
 
 Each itinerary in the answer has `total_price_as_number`, both legs' airline, stops and times,
 `buy_link`, and Google's `price_insights_low` / `price_insights_high` range with its

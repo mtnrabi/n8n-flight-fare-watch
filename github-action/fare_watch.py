@@ -43,8 +43,9 @@ def settings(env=os.environ) -> dict:
 
 
 def body_for(s: dict) -> dict:
+    # No "sort_type": Google gives no usual range and no verdict on a price-sorted page. decide() picks the cheapest.
     return {"from_airport": s["from"], "to_airport": s["to"], "departure_date": s["depart"],
-            "return_date": s["return"], "currency": s["currency"], "limit": 10, "sort_type": "Price", **ATTRIBUTION}
+            "return_date": s["return"], "currency": s["currency"], "limit": 10, **ATTRIBUTION}
 
 
 def search(body: dict, key: str) -> list:
@@ -82,7 +83,8 @@ def report(best: dict, why: list[str], s: dict, fetched_at: str) -> tuple[str, s
         f"- Return: {best.get('return_flight_airline')}, {best.get('return_flight_stops')} stop(s), "
         f"{best.get('return_flight_departure_description')}",
         f"- Google: {best.get('price_range_in_relation_to_other_periods')} "
-        f"(usual {best.get('price_insights_low')}-{best.get('price_insights_high')} {cur})",
+        f"(usual {best.get('price_insights_low')}-{best.get('price_insights_high')} {cur})"
+        if best.get("price_insights_low") is not None else "- Google: no usual range for these dates",
         f"- Why: {'; '.join(why)}" if why else "- No alert rule matched",
         f"- [Book on Google Flights]({best.get('buy_link')})",
         "", f"Fetched {fetched_at}. Fares change within minutes.",
